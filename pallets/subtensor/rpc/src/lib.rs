@@ -1,5 +1,4 @@
 //! RPC interface for the custom Subtensor rpc methods
-
 use jsonrpsee::{
     core::RpcResult,
     proc_macros::rpc,
@@ -32,6 +31,7 @@ pub trait SubtensorCustomApi<BlockHash> {
         delegatee_account_vec: Vec<u8>,
         at: Option<BlockHash>,
     ) -> RpcResult<Vec<u8>>;
+    //fghjkl;
 
     #[method(name = "neuronInfo_getNeuronsLite")]
     fn get_neurons_lite(&self, netuid: u16, at: Option<BlockHash>) -> RpcResult<Vec<u8>>;
@@ -51,6 +51,14 @@ pub trait SubtensorCustomApi<BlockHash> {
 
     #[method(name = "subnetInfo_getLockCost")]
     fn get_network_lock_cost(&self, at: Option<BlockHash>) -> RpcResult<u64>;
+    #[method(name = "subtensor_epoch")]
+    fn get_subtensor_epoch(
+        &self, 
+        netuid: u16, 
+        return_incentive_data: Option<bool>, 
+        at: Option<BlockHash>
+    ) -> RpcResult<Vec<u8>>;
+
 }
 
 pub struct SubtensorCustom<C, P> {
@@ -222,5 +230,18 @@ where
         api.get_network_registration_cost(at).map_err(|e| {
             Error::RuntimeError(format!("Unable to get subnet lock cost: {:?}", e)).into()
         })
+    }
+    fn get_subtensor_epoch(
+        &self,
+        netuid: u16, 
+        return_incentive_data: Option<bool>, 
+        at: Option<<Block as BlockT>::Hash>
+    ) -> RpcResult<Vec<u8>> {
+        let api = self.client.runtime_api();
+        let at = at.unwrap_or_else(|| self.client.info().best_hash);
+        
+
+        api.get_subtensor_epoch(at, netuid, return_incentive_data)
+            .map_err(|e| Error::RuntimeError(format!("Unable to call epoch : {:?}", e)).into())
     }
 }
